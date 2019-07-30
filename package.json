@@ -1,0 +1,16 @@
+{
+  "name": "project-electron",
+  "version": "1.0.0",
+  "main": "main.js",
+  "author": "Maria Lisboa",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^6.0.0"
+  },
+  "dependencies": {
+    "electron-store": "^4.0.0"
+  }
+}
