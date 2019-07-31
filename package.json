@@ -1,16 +1,44 @@
 {
-  "name": "project-electron",
-  "version": "1.0.0",
-  "main": "main.js",
-  "author": "Maria Lisboa",
-  "license": "MIT",
-  "scripts": {
-    "start": "electron ."
-  },
-  "devDependencies": {
-    "electron": "^6.0.0"
-  },
-  "dependencies": {
-    "electron-store": "^4.0.0"
-  }
+	"name": "project-electron",
+	"description": "Open VSCode projects from tray menu.",
+	"version": "1.0.0",
+	"main": "main.js",
+	"repository": "https://github.com/MariaLisboa1/project-electron",
+	"author": "Maria Lisboa <maria.developer.ti@gmail.com>",
+	"license": "MIT",
+	"scripts": {
+		"start": "electron .",
+		"dev": "nodemon --exec electron .",
+		"pack": "electron-builder --dir",
+		"dist": "electron-builder",
+		"dist:linux": "electron-builder --linux",
+		"postinstall": "electron-builder install-app-deps"
+	},
+	"devDependencies": {
+		"electron-builder": "^21.1.5",
+		"eslint": "^5.16.0",
+		"eslint-config-airbnb-base": "^13.2.0",
+		"eslint-config-prettier": "^6.0.0",
+		"eslint-plugin-import": "^2.18.2",
+		"eslint-plugin-prettier": "^3.1.0"
+	},
+	"dependencies": {
+		"@sentry/electron": "0.17.1",
+		"cross-spawn": "^6.0.5",
+		"electron": "^6.0.0",
+		"electron-store": "^4.0.0"
+	},
+	"build": {
+		"appId": "com.project.test",
+		"productName": "Project Electron",
+		"linux": {
+			"category": "Utility",
+			"icon": "build/icon.png",
+			"target": [ "deb", "snap", "rpm" ]
+		},
+		"win": {
+			"target": "NSIS",
+			"icon": "build/icon.ico"
+		}
+	}
 }

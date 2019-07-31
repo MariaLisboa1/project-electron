@@ -1,30 +1,101 @@
-const { resolve } = require("path");
-const { app, Menu, Tray, dialog } = require("electron");
-const Store = require("electron-store");
+const { resolve, basename } = require('path');
+const {
+  app, Menu, Tray, dialog,
+} = require('electron');
+const { spawn } = require('child_process');
+const Store = require('electron-store');
+const Sentry = require('@sentry/electron');
+
+Sentry.init({ dsn: 'https://18c9943a576d41248b195b5678f2724e@sentry.io/1506479' });
 
 const schema = {
-    projects: {
-        type: "array"
-    },
-}
+  projects: {
+    type: 'string',
+  },
+};
 
+let mainTray = {};
+
+if (app.dock) {
+  app.dock.hide();
+}
 const store = new Store({ schema });
 
+function render(tray = mainTray) {
+  const storedProjects = store.get('projects');
+  const projects = storedProjects ? JSON.parse(storedProjects) : [];
+
+  const items = projects.map(({ name, path }) => ({
+    label: name,
+    submenu: [
+      {
+        label: 'Abrir no VSCode',
+        click: () => {
+          spawn('code', [path], {
+            cwd: process.cwd(),
+            env: {
+              PATH: process.env.PATH,
+            },
+            stdio: ['inherit'],
+          });
+        },
+      },
+      {
+        label: 'Remover',
+        click: () => {
+          store.set('projects', JSON.stringify(projects.filter(item => item.path !== path)));
+
+          render();
+        },
+      },
+    ],
+  }));
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Adicionar novo projeto...',
+      click: () => {
+        const result = dialog.showOpenDialog({ properties: ['openDirectory'] });
+
+        if (!result) return;
+
+        const [path] = result;
+        const name = basename(path);
+
+        store.set(
+          'projects',
+          JSON.stringify([
+            ...projects,
+            {
+              path,
+              name,
+            },
+          ]),
+        );
+
+        render();
+      },
+    },
+    {
+      type: 'separator',
+    },
+    ...items,
+    {
+      type: 'separator',
+    },
+    {
+      type: 'normal',
+      label: 'Fechar programa',
+      role: 'quit',
+      enabled: true,
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+}
+
 app.on('ready', () => {
+  mainTray = new Tray(resolve(__dirname, 'assets', 'iconTemplate.png'));
 
-    const tray = new Tray(resolve(__dirname, 'assets', 'iconTemplate.png'));
-
-    console.log(store.get("projects"));
-    
-
-    const contextMenu = Menu.buildFromTemplate([
-        { label: 'Item1', type: 'radio', checked: true , click: () => {
-            const [path] = dialog.showOpenDialog({ properties: ["openDirectory"] });
-
-            store.set("projects[]", path);
-        } }
-    ]);
-
-    tray.setToolTip('This is my application');
-    tray.setContextMenu(contextMenu);
+  render();
 });
